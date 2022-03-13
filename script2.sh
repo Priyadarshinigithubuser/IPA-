@@ -1,45 +1,23 @@
     #!/bin/bash
-    # Nico Snyman, nico@gammafly.com, 14/05/2015
-    # Change an instance type, while keeping snapshots
-    # This script will stop an instance identified by instance ID,
-    # take snapshots of all atached volumes, and restart it
-    # Use:
-    # -i instance ID - REQUIRED - stored in instance_id
-    # -t instance new instance type - REQUIRED - stored in instance_type
-    # -s if set to 0, no snapshot will be taken, dafault is 1
-    #       (take snapshot of attached volumes) - stored in snapshot
-    # -h Print Help
-    #
-    # Example: change_instance.sh -i i-aeae453e -t t2.small -s 0
-    # The script requires AWS CLI tools to be installed and configured
-    # If you want to take snapshots BEFORE stopping the instance, edit
-    # the "Main" part of the script, moving stop_instance to below create_snapshot
-    #
-    # NOTE: I do no error checking to see if the instance exists, the script
-    # will crash horribly if it doesn't
-     
-     
-    #Some variables
     instance_id="0"
     instance_type="0"
     snapshot=1
      
-    PROGNAME=$(basename $0) #Sets PROGNAME to the name of the script
-    logfile="~/ec2-instance-change.log" #Set up the log file name
-    tempfile="/tmp/volume_info.txt" #Sets up the temp file for volume lists
-     
+    PROGNAME=$(basename $0) 
+    logfile="~/ec2-instance-change.log" 
+    tempfile="/tmp/volume_info.txt"
     clean_up() {
      
-            # Perform program exit housekeeping
+          
             rm $tempfile
             echo "$PROGNAME aborted by user"       
             exit
     }
      
-    #usage - print script help
+   
     usage() {
      
-            # Display usage message on standard error
+            
             echo "Usage:    $PROGNAME [OPTION] [Args]
     Change an instance type, while keeping snapshots
     This script will stop an instance identified by instance ID,
@@ -51,10 +29,7 @@
     -s              if set to 0, no snapshot will be taken, dafault is 1
                     (take snapshot of attached volumes) - stored in snapshot
      
-    Example: change_instance.sh -i i-aeae453e -t t2.small -s 0
-    The script requires AWS CLI tools to be installed and configured
-    If you want to take snapshots BEFORE stopping the instance, edit the #Main#
-    part of the script, moving stop_instance to below create_snapshot
+    
      
     Allowed instance types:
     t2.micro | t2.small | t2.medium | m3.medium | m3.large | m3.xlarge | m3.2xlarge
@@ -70,21 +45,21 @@
                     aws ec2 describe-volumes --filter Name=attachment.instance-id,Values=$instance_id --query Volumes[*].{ID:VolumeId} --output text | tr '\t' '\n' > $tempfile 2>&1
     }
      
-    #create_snapshots(): Take a snapshot of all volumes with correct tags
+    
     create_snapshots(){
             for volume_id in $(cat $tempfile)
             do
-                    #Create a decription for the snapshot that describes the volume: servername.device-backup-date
+                    
                     instance_name=$(aws ec2 describe-instances --instance-ids $instance_id --query Reservations[*].Instances[*].Tags --output text|awk '{if (/[/]/) pat1=$0; if ($1 ~/Name/) pat2=$2;}{print pat2}')
             temp="-backup-$(date +%Y-%m-%d)"
             description=$instance_name"-"$volume_id$temp
                     description=${description// /.}
                     #echo "Volume ID is $volume_id" >> $logfile
                     echo "INFO: Creating snapshot $description"
-                    #Take a snapshot of the current volume, and capture the resulting snapshot ID
+                    
                     snapresult=$(aws ec2 create-snapshot --output=text --description $description --volume-id $volume_id --query SnapshotId)
                    
-            # Add some tags to the snapshot
+           
                     tagresult=$(aws ec2 create-tags --resource $snapresult --tags Key=CreatedBy,Value=ChangeInstanceType)
                     echo "INFO: Adding tags CreatedBy:$PROGNAME = $tagresult"
             done
