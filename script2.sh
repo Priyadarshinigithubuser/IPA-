@@ -1,22 +1,8 @@
    #!/bin/bash
    
-    # Change an instance type, while keeping snapshots
-    # This script will stop an instance identified by instance ID,
-    # take snapshots of all atached volumes, and restart it
-    # Use:
-    # -i instance ID - REQUIRED - stored in instance_id
-    # -t instance new instance type - REQUIRED - stored in instance_type
-    # -s if set to 0, no snapshot will be taken, dafault is 1
-    #       (take snapshot of attached volumes) - stored in snapshot
-    # -h Print Help
-    #
-    # Example: change_instance.sh -i i-aeae453e -t t2.small -s 0
-    # The script requires AWS CLI tools to be installed and configured
-    # If you want to take snapshots BEFORE stopping the instance, edit
-    # the "Main" part of the script, moving stop_instance to below create_snapshot
-    #
-    # NOTE: I do no error checking to see if the instance exists, the script
-    # will crash horribly if it doesn't
+  
+    
+   
 
 
     #Some variables
